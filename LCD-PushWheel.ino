@@ -30,6 +30,7 @@ const uint8_t LCD_D4 = 4;
 const uint8_t LCD_D5 = LCD_D4 + 1;
 const uint8_t LCD_D6 = LCD_D4 + 2;
 const uint8_t LCD_D7 = LCD_D4 + 3;
+bool animated = false;
 
 LiquidCrystal lcd(LCD_RS, LCD_ENA, LCD_D4, LCD_D5, LCD_D6, LCD_D7);
 
@@ -70,7 +71,7 @@ uint8_t digitsMap[][CHAR_ROWS] =
   { 0x02, 0x06, 0x0a, 0x12, 0x1f, 0x02, 0x02, 0x00 }, // '4'
   { 0x1f, 0x10, 0x1e, 0x01, 0x01, 0x11, 0x0e, 0x00 }, // '5'
   { 0x06, 0x08, 0x10, 0x1e, 0x11, 0x11, 0x0e, 0x00 }, // '6'
-  { 0x1f, 0x11, 0x01, 0x02, 0x04, 0x04, 0x04, 0x00 }, // '7'
+  { 0x1f, 0x01, 0x02, 0x04, 0x08, 0x08, 0x08, 0x00 }, // '7'
   { 0x0e, 0x11, 0x11, 0x0e, 0x11, 0x11, 0x0e, 0x00 }, // '8'
   { 0x0e, 0x11, 0x11, 0x0f, 0x01, 0x02, 0x0c, 0x00 }, // '9'
 };
@@ -256,6 +257,7 @@ boolean displayValue(uint32_t value)
       // are we done animating?
       {
         boolean allDone = true;
+        
 
         for (uint8_t i = 0; allDone && (i < MAX_DIGITS); i++)
         {
@@ -266,6 +268,7 @@ boolean displayValue(uint32_t value)
         {
           valueLast = value;
           state = ST_WAIT;
+          animated = false;
         }
       }
       break;
@@ -298,8 +301,14 @@ void loop()
   static uint32_t value = 12345678;
   uint8_t k = getKey(analogRead(KEY_ADC_PORT));
 
-  if (k == KEY_UP) value++;
-  else if (k == KEY_DOWN) value--;
+  if (k == KEY_UP && !animated) {
+    animated = true;//avoid changing counter value by 2 or more instead of expected 1
+    value++;
+  }
+  else if (k == KEY_DOWN && !animated) {
+    animated = true;
+    value--;
+  }
 
   displayValue(value);
 }
